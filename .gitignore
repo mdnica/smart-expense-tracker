@@ -1,0 +1,56 @@
+# =======================================
+# Python / FastAPI Project .gitignore
+# =======================================
+
+# Virtual environment folders
+venv/
+venv_temp/
+env/
+ENV/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# SQLite database
+*.db
+
+# IDE / Editor settings
+.idea/
+.vscode/
+*.iml
+
+# OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs and temporary files
+*.log
+*.tmp
+*.bak
+
+# Environment variables / secret files
+.env
+*.env
+
+# PyCharm specific
+/.idea/*
+*.ipr
+*.iws
+
+# Uvicorn and FastAPI cache
+*.sqlite3
+*.pid
+
+# Build / distribution
+build/
+dist/
+*.egg-info/
+
+# =======================================
+# End of .gitignore
+# =======================================
