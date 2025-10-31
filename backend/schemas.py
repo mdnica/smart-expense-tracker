@@ -25,6 +25,10 @@ class ExpenseOut(ExpenseBase):
     model_config = ConfigDict(from_attributes=True) # Pydantic v2: tell it we'll feed it SQLAlchemy objects
 
 
+class UserCreate(BaseModel):
+    username: str
+    email: str
+    password: str
 
 
 
