@@ -1,91 +1,75 @@
-import React, { useState } from "react";
-import { loginUser } from "./api";
+import React, { useState, useEffect } from "react";
+
+import { useNavigate } from "react-router-dom";
 
 function Login ({ onLogin }) {
     const [username, setUsername] = useState("");
     const[password, setPassword] = useState("");
     const [error, setError] = useState("");
 
-    const handleSubmit = async (e) => {
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        if (token) {
+            navigate("/dashboard");
+        }
+    }, [navigate]);
+
+    const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
 
     try {
-        await loginUser(username, password);
-        alert("Login successful!");
-        window.location.href = "/dashboard"; //later, redirect to main app
-    } catch (err) {
-      setError("Invalid username or password");
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+                username: username,
+                password: password
+            })
+        });
+
+    const data = await response.json();
+
+    if (response.ok) {
+        alert('Login successful!');
+        localStorage.setItem('token', data.access_token);
+        window.location.href = '/dashboard';
+    } else {
+        setError(data.detail || 'Invalid username or password');
     }
+} catch (err) {
+    setError('Network error');
+    console.error(err);
+}
 };
 
-
- return (
-    <div className="login-container" style={styles.container}>
+return (
+    <div className="login-container">
         <h2>Login</h2>
-        <form onSubmit={handleSubmit} style={styles.form}>
+        <form onSubmit={handleLogin}>
             <input
                 type="text"
                 placeholder="Username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                style={styles.input}
-                required
             />
             <input
                 type="password"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                style={styles.input}
-                required
             />
-            <button type="submit" style={styles.button}>Login</button>
-            </form>
-            {error && <p style={styles.error}>{error}</p>}
+            <button type="submit">Login</button>
+           </form>
+           {error && <p style={{ color: 'red'}}>{error}</p>}
         </div>
-
- );
+);
 }
 
-const styles = {
-    container: {
-        maxWidth: "300px",
-        margin: "100px auto",
-        textAlign: "center",
-        background: "#f5f5f5",
-        padding: "20px",
-        borderRadius: "10px",
-        boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
-    },
 
-    form: {
-        display: "flex",
-        flexDirection: "column",
 
-    },
-
-    input: {
-        margin: "8px 0",
-        padding: "10px",
-        fontSize: "16px",
-    },
-
-    button : {
-        background: "#007bff",
-        color: "white",
-        border: "none",
-        padding: "10px",
-        cursor: "pointer",
-        borderRadius: "5px",
-    },
-
-    error: {
-        color: "red",
-        marginTop: "10px",
-    },
-
-};
 
 
 export default Login;

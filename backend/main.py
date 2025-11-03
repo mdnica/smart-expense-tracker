@@ -1,12 +1,12 @@
 from fastapi import FastAPI, Depends, HTTPException, Path, Response, status
 from fastapi.middleware.cors import CORSMiddleware
-from backend.auth import get_current_user
+from backend.dependencies import get_current_user
 from sqlalchemy.orm import Session
 from backend import models, database, schemas, auth
 from .database import engine, get_db
 from fastapi.security import OAuth2PasswordRequestForm
 from datetime import timedelta
-from . import auth
+
 
 
 
@@ -24,13 +24,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Dependency to get DB session
-def get_db():
-    db = database.SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 # endpoints
 @app.post("/signup")
@@ -126,9 +119,6 @@ def update_expense_full(
 
 
 
-
-
-
 @app.patch("/expenses/{expense_id}", response_model=schemas.ExpenseOut)
 def update_expense(
         expense_id: int,
@@ -138,7 +128,7 @@ def update_expense(
 ):
         expense = db.query(models.Expense).filter(
             models.Expense.id == expense_id,
-            models.Expense.user_id == current_user_id
+            models.Expense.user_id == current_user.id
 
         ).first()
 
@@ -155,7 +145,7 @@ def update_expense(
 
 
 
-@app.delete("/expenses/{expense_id}", status_code=204)
+@app.delete("/expenses/{expense_id}", status_code=200)
 def delete_expense(
         expense_id: int,
         db: Session = Depends(database.get_db),

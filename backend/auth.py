@@ -1,11 +1,38 @@
+from .dependencies import get_current_user
 from datetime import datetime, timedelta
 from typing import Optional
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, APIRouter
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from . import models, database
+
+
+
+router = APIRouter()
+
+@router.post("/refresh")
+def refresh_token(current_user: models.User = Depends(get_current_user)):
+    try:
+        # Create a new token
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = jwt.encode(
+            {
+                "sub": current_user.username,
+                "exp": datetime.utcnow() + access_token_expires
+            },
+            SECRET_KEY,
+            algorithm=ALGORITHM
+
+        )
+        return {"access_token": access_token, "token_type": "bearer"}
+
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token refresh failed",
+        )
 
 SECRET_KEY = "358c631b266506feab3e2aa20181493062e581b4ee593af5fe6486b60dfae4fc"
   # 🔒 Replace with a strong random string
@@ -13,7 +40,7 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
 
 
 def verify_password(plain_password, hashed_password):
@@ -47,20 +74,3 @@ def authenticate_user(db: Session, username: str, password: str):
     return user
 
 
-def get_current_user(db: Session = Depends(database.get_db), token: str = Depends(oauth2_scheme)):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
-            raise credentials_exception
-    except JWTError:
-        raise credentials_exception
-    user = get_user_by_username(db, username=username)
-    if user is None:
-        raise credentials_exception
-    return user

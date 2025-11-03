@@ -44,3 +44,27 @@ export async function getExpenses(token) {
 
     return await response.json();
 }
+
+
+// Refresh token function
+export async function refreshToken(oldToken) {
+    try {
+        const response= await fetch(`${process.env.REACT_APP_API_URL}/refresh`, {
+          method:"POST",
+          headers: {
+            "Authorization": `Bearer ${oldToken}`,
+            "Content-Type": "application/json",
+        }
+    });
+
+    if (!response.ok) {
+        throw new Error("Failed to refresh token");
+    }
+
+        const data = await response.json();
+        return data.access_token; // depends on your backend response key
+    } catch (error) {
+      console.error("Token refresh failed:", error);
+      throw error;
+    }
+}

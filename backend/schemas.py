@@ -1,12 +1,12 @@
 from pydantic import BaseModel, ConfigDict
-from datetime import date
+from datetime import datetime
 from typing import Optional
 
 class ExpenseBase(BaseModel):
     title: str
     amount: float
     category: str
-    date: date
+    date: datetime
 
 class ExpenseCreate(ExpenseBase):
     pass
@@ -22,6 +22,7 @@ class ExpensePatch(BaseModel): # for PATCH (partial update)
 
 class ExpenseOut(ExpenseBase):
     id: int
+    user_id: int
     model_config = ConfigDict(from_attributes=True) # Pydantic v2: tell it we'll feed it SQLAlchemy objects
 
 
